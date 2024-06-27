@@ -1,59 +1,136 @@
-import React, { useState } from "react";
-import { View, SafeAreaView, AsyncStorage } from "react-native";
-import Modal from "react-native-modal";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  SafeAreaView,
+  FlatList,
+  Text,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import ButtonTouchableOpacity from "../component/ButtonTouchableOpacity";
-import Label from "../component/Label";
-import NoteModal from "./NoteModal"; // Önceki örnekteki NoteModal bileşeni
 
-const NotesScreen = () => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [savedNotes, setSavedNotes] = useState([]);
+const NotesScreen = ({ navigation }) => {
+  const [notes, setNotes] = useState([]);
 
-  const toggleModal = () => {
-    setModalVisible(!modalVisible);
+  const fetchNotes = async () => {
+    try {
+      const existingNotes = await AsyncStorage.getItem("notes");
+      const notes = existingNotes ? JSON.parse(existingNotes) : [];
+      setNotes(notes);
+    } catch (error) {
+      console.error("Error fetching notes from AsyncStorage", error);
+    }
   };
 
-  const handleSaveNote = async (note) => {
-    // AsyncStorage'de notları depola
-    const notes = [...savedNotes, note];
-    await AsyncStorage.setItem("notes", JSON.stringify(notes));
-    setSavedNotes(notes);
-    toggleModal(); // Modalı kapat
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchNotes();
+    }, [])
+  );
+
+  const handleDeleteNote = async (index) => {
+    const newNotes = [...notes];
+    newNotes.splice(index, 1);
+    setNotes(newNotes);
+    await AsyncStorage.setItem("notes", JSON.stringify(newNotes));
   };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  };
+
+  const renderItem = ({ item, index }) => (
+    <View style={styles.noteContainer}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <Text style={styles.noteTitle}>{item.title}</Text>
+        <View style={{ flexDirection: "row" }}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("EditNote", { note: item, index })
+            }
+          >
+            <Text style={styles.editText}>Edit</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleDeleteNote(index)}>
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Text style={styles.noteContent}>{item.content}</Text>
+      {item.dateModified && (
+        <Text style={styles.noteDate}>
+          Last modified: {formatDate(item.dateModified)}
+        </Text>
+      )}
+      {!item.dateModified && (
+        <Text style={styles.noteDate}>Created: {formatDate(item.date)}</Text>
+      )}
+    </View>
+  );
 
   return (
-    <SafeAreaView style={{ backgroundColor: "#ffd700", flex: 1}}>
-      <View style={{ flex: 1 }}>
-        {savedNotes.map((note, index) => (
-          <View key={index}>
-            <Label text={`Başlık: ${note.title}`} />
-            <Label text={`Metin: ${note.content}`} />
-          </View>
-        ))}
-      </View>
-      <NoteModal
-        isVisible={modalVisible}
-        onClose={toggleModal}
-        onSave={handleSaveNote}
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={notes}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.listContent}
       />
-      <View
-        style={{
-          alignItems: "flex-end",
-          justifyContent: "flex-end",
-          flexDirection: "row",
-          marginBottom:10,
-          marginRight:5
-        }}
-      >
+      <View style={styles.addButtonContainer}>
         <ButtonTouchableOpacity
           text="ADD"
           width={110}
           height={60}
-          onPress={toggleModal}
+          onPress={() => navigation.navigate("AddNote")}
         />
       </View>
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "#ffd700",
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+  },
+  noteContainer: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  noteTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  noteContent: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  noteDate: {
+    fontSize: 14,
+    color: "grey",
+  },
+  addButtonContainer: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+  },
+  editText: {
+    color: "blue",
+    marginRight: 10,
+  },
+  deleteText: {
+    color: "red",
+  },
+});
 
 export default NotesScreen;
