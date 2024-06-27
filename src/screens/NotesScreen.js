@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   SafeAreaView,
@@ -11,31 +11,22 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import ButtonTouchableOpacity from "../component/ButtonTouchableOpacity";
+import { NotesContext } from "../context/NotesContext";
+import axios from "axios";
+import { api } from "../services/api";
 
 const NotesScreen = ({ navigation }) => {
-  const [notes, setNotes] = useState([]);
+  const { notes, setNotes } = useContext(NotesContext);
 
-  const fetchNotes = async () => {
-    try {
-      const existingNotes = await AsyncStorage.getItem("notes");
-      const notes = existingNotes ? JSON.parse(existingNotes) : [];
-      setNotes(notes);
-    } catch (error) {
-      console.error("Error fetching notes from AsyncStorage", error);
-    }
-  };
-
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchNotes();
-    }, [])
-  );
-
-  const handleDeleteNote = async (index) => {
-    const newNotes = [...notes];
-    newNotes.splice(index, 1);
-    setNotes(newNotes);
-    await AsyncStorage.setItem("notes", JSON.stringify(newNotes));
+  const handleDeleteNote = async (noteId) => {
+    api
+      .delete(`/posts/${noteId}`)
+      .then((response) => {
+        setNotes(notes.filter((note) => note.id !== noteId));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const formatDate = (dateString) => {
@@ -55,7 +46,7 @@ const NotesScreen = ({ navigation }) => {
           >
             <Text style={styles.editText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => handleDeleteNote(index)}>
+          <TouchableOpacity onPress={() => handleDeleteNote(item.id)}>
             <Text style={styles.deleteText}>Delete</Text>
           </TouchableOpacity>
         </View>

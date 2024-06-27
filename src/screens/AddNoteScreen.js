@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -11,33 +11,35 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import ButtonTouchableOpacity from "../component/ButtonTouchableOpacity";
+import axios from "axios";
+import { NotesContext } from "../context/NotesContext";
+import { api } from "../services/api";
 
 const AddNoteScreen = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const navigation = useNavigation();
-
+  const { notes, setNotes } = useContext(NotesContext);
   const handleSaveNote = async () => {
     if (!title || !content) {
       Alert.alert("Both fields are required");
       return;
     }
-
+    console.log("girdi");
     const newNote = {
-      title,
-      content,
-      date: new Date().toISOString(),
+      id: Math.floor(Math.random() * 100000) + 1,
+      title: title,
+      content: content,
+      date: new Date(),
     };
-
-    try {
-      const existingNotes = await AsyncStorage.getItem("notes");
-      const notes = existingNotes ? JSON.parse(existingNotes) : [];
-      notes.push(newNote);
-      await AsyncStorage.setItem("notes", JSON.stringify(notes));
-      navigation.goBack();
-    } catch (error) {
-      console.error("Error saving note", error);
-    }
+    api
+      .post("/posts", newNote)
+      .then((res) => {
+        console.log(res);
+        setNotes([res.data, ...notes]);
+        navigation.goBack();
+      })
+      .catch((err) => console.log(err));
   };
 
   return (
@@ -51,8 +53,15 @@ const AddNoteScreen = () => {
       <TextInput
         placeholder="Content"
         value={content}
+        multiline
         onChangeText={setContent}
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            flexGrow: 1,
+            textAlignVertical: "top",
+          },
+        ]}
       />
       <View style={{ alignItems: "flex-end" }}>
         <ButtonTouchableOpacity
