@@ -20,7 +20,6 @@ import Header from "../component/Header";
 const NotesScreen = ({ navigation, route }) => {
   const { notes, setNotes } = useContext(NotesContext);
   const { auth } = useContext(AuthContext);
-  console.log("🚀 ~ NotesScreen ~ auth:", auth);
   const handleDeleteNote = async (noteId) => {
     api
       .delete(`/posts/${noteId}`)
@@ -67,6 +66,11 @@ const NotesScreen = ({ navigation, route }) => {
         {!item.dateModified && (
           <Text style={styles.noteDate}>Created: {formatDate(item.date)}</Text>
         )}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("NoteDetail", { noteId: item.id })}
+        >
+          <Text style={styles.deleteText}>Details</Text>
+        </TouchableOpacity>
       </View>
     );
   };
