@@ -14,11 +14,11 @@ import ButtonTouchableOpacity from "../component/ButtonTouchableOpacity";
 import axios from "axios";
 import { NotesContext } from "../context/NotesContext";
 import { api } from "../services/api";
+import Header from "../component/Header";
 
-const AddNoteScreen = () => {
+const AddNoteScreen = ({ route, navigation }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const navigation = useNavigation();
   const { notes, setNotes } = useContext(NotesContext);
   const handleSaveNote = async () => {
     if (!title || !content) {
@@ -44,32 +44,35 @@ const AddNoteScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TextInput
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Content"
-        value={content}
-        multiline
-        onChangeText={setContent}
-        style={[
-          styles.input,
-          {
-            flexGrow: 1,
-            textAlignVertical: "top",
-          },
-        ]}
-      />
-      <View style={{ alignItems: "flex-end" }}>
-        <ButtonTouchableOpacity
-          text="Save Note"
-          width={110}
-          height={60}
-          onPress={handleSaveNote}
+      <Header route={route} navigation={navigation} />
+      <View style={styles.contentContainer}>
+        <TextInput
+          placeholder="Title"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
         />
+        <TextInput
+          placeholder="Content"
+          value={content}
+          multiline
+          onChangeText={setContent}
+          style={[
+            styles.input,
+            {
+              flexGrow: 1,
+              textAlignVertical: "top",
+            },
+          ]}
+        />
+        <View style={{ alignItems: "flex-end" }}>
+          <ButtonTouchableOpacity
+            text="Save Note"
+            width={110}
+            height={60}
+            onPress={handleSaveNote}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -78,8 +81,11 @@ const AddNoteScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: "#ffd700",
+  },
+  contentContainer: {
+    flex: 1,
+    padding: 16,
   },
   input: {
     backgroundColor: "#fff",

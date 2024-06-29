@@ -1,3 +1,24 @@
 {
-  "posts": []
+  "posts": [
+    {
+      "id": "23986",
+      "title": "asdasd oguz  aaaaa",
+      "content": "oguz 123 asdsaadasddsfalkdmflkasdmflkmasdlkfmsadlkfmlaskdmflkasdmflksadmflkmasldf 123123123123123sd asdasd asdasdasd dwqe qweqweqw eqweqwe",
+      "date": "2024-06-29T09:09:56.621Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "92834jfn3u3344",
+      "username": "kursatalgul",
+      "password": "123321",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Imt1cnNhdGFsZ3VsIiwicGFzc3dvcmQiOiIxMjMzMjEifQ.MxEMILjfH2YBraj8sY9-xoM2O2IE8bfKlCIu71z-uqo"
+    },
+    {
+      "id": "92834jfn3u3344",
+      "username": "kursatalgul123",
+      "password": "123321",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Imt1cnNhdGFsZ3VsIiwicGFzc3dvcmQiOiIxMjMzMjEifQ.MxEMILjfH2YBraj8sY9-xoM2O2IE8bfKlCIu71z-uqo"
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,16 @@ import {
   Alert,
   KeyboardAvoidingView,
 } from "react-native";
-import axios from "axios";
 import * as Yup from "yup";
 import { Formik } from "formik";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import InputText from "../component/InputText";
 import ButtonTouchableOpacity from "../component/ButtonTouchableOpacity";
+import { jwtDecode } from "jwt-decode";
+import { AuthContext } from "../context/AuthContext";
+import { api } from "../services/api";
+import authService from "../services/auth.service";
 
 const loginValidationSchema = Yup.object().shape({
   username: Yup.string().required("Kullanıcı Adı boş bırakılamaz."),
@@ -20,24 +23,24 @@ const loginValidationSchema = Yup.object().shape({
 });
 
 const LoginScreen = ({ navigation }) => {
-  const handleLogin = async () => {
+  const { auth, setAuth } = useContext(AuthContext);
+  const handleLogin = async (values) => {
     try {
-      // Sunucuya kullanıcı adı ve şifre ile istek yapılır
-      const response = await axios.post("https://jwt.io/#debugger-io?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Imt1cnNhdCIsInBhc3N3b3JkIjoiYWxndWwifQ.FzbfjDfBbr9h0c-84U4sYUZpki6UJvMcAM1LhooR0OY", {
-        username,
-        password,
-      });
-
-      // Sunucudan gelen JWT token alınır
-      const token = response.data.token;
-
-      // Token AsyncStorage üzerinde saklanır
-      await AsyncStorage.setItem("token", token);
-
-      // Başarılı giriş durumunda "Notes" ekranına yönlendirme yapılır
-      navigation.navigate("Notes");
+      const { username, password } = values;
+      const data = await authService.login(username, password);
+      const decodedToken = jwtDecode(data.token);
+      if (
+        data &&
+        decodedToken.username === username &&
+        decodedToken.password === password
+      ) {
+        setAuth(decodedToken);
+        navigation.navigate("Notes");
+      } else {
+        Alert.alert("Login Error", "Invalid Username or Password");
+      }
     } catch (error) {
-      Alert.alert("Login Error", "Invalid Username or Password");
+      Alert.alert("Login Error", "Something went wrong!");
     }
   };
 
